@@ -17,12 +17,15 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"universe_group_test_task/internal/products"
+	"universe_group_test_task/pkg/kafka"
 )
 
 func main() {
 	dbURL := getEnv("DATABASE_URL", "postgres://postgres:root@localhost:5432/products_db?sslmode=disable")
 	httpAddr := getEnv("HTTP_ADDR", ":8080")
 	migrationsPath := getEnv("MIGRATIONS_PATH", "file://migrations")
+	kafkaBroker := getEnv("KAFKA_BROKER", "localhost:9092")
+	kafkaTopic := getEnv("KAFKA_TOPIC", "product-events")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -40,8 +43,12 @@ func main() {
 
 	runMigrations(dbURL, migrationsPath)
 
+	producer := kafka.NewProducer([]string{kafkaBroker}, kafkaTopic)
+	defer producer.Close()
+	log.Println("kafka producer initialized")
+
 	repo := products.NewRepository(pool)
-	service := products.NewService(repo)
+	service := products.NewService(repo, producer)
 	handler := products.NewHandler(service)
 
 	r := chi.NewRouter()
