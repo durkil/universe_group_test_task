@@ -15,6 +15,7 @@ import (
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 
 	"universe_group_test_task/internal/products"
 	"universe_group_test_task/pkg/kafka"
@@ -55,6 +56,7 @@ func main() {
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
 	r.Mount("/products", handler.Routes())
+	r.Handle("/metrics", promhttp.Handler())
 
 	srv := &http.Server{
 		Addr:    httpAddr,

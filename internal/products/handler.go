@@ -42,6 +42,7 @@ func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	ProductsCreated.Inc()
 	writeJSON(w, http.StatusCreated, product)
 }
 
@@ -62,6 +63,7 @@ func (h *Handler) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	ProductsDeleted.Inc()
 	w.WriteHeader(http.StatusNoContent)
 }
 
